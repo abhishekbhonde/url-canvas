@@ -558,6 +558,298 @@
                 font-size: 2.5em;
             }
         }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            header {
+                margin-bottom: 20px;
+                padding: 15px 0;
+            }
+
+            h1 {
+                font-size: 2em;
+                letter-spacing: -1px;
+            }
+
+            .subtitle {
+                font-size: 0.9em;
+            }
+
+            .feature-tags {
+                gap: 6px;
+            }
+
+            .tag {
+                padding: 4px 10px;
+                font-size: 0.75em;
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .panel {
+                padding: 15px;
+                border-radius: 15px;
+            }
+
+            .panel h2 {
+                font-size: 1.1em;
+                margin-bottom: 15px;
+            }
+
+            .canvas-wrapper {
+                padding: 15px;
+            }
+
+            .pixel {
+                width: 12px;
+                height: 12px;
+            }
+
+            .pixel:hover {
+                transform: scale(1.05);
+            }
+
+            .button-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            button {
+                padding: 12px 16px;
+                font-size: 0.9em;
+            }
+
+            .tool-group {
+                margin-bottom: 15px;
+            }
+
+            .tool-group label {
+                font-size: 0.85em;
+                margin-bottom: 8px;
+            }
+
+            .size-options {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .color-palette {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+            }
+
+            .custom-color-section {
+                padding: 12px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .custom-color-section input[type="color"] {
+                width: 50px;
+                height: 50px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .stat-value {
+                font-size: 1.5em;
+            }
+
+            .stat-label {
+                font-size: 0.75em;
+            }
+
+            .zoom-controls {
+                gap: 8px;
+                margin-top: 10px;
+            }
+
+            .zoom-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 0.9em;
+            }
+
+            .notification {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                padding: 12px 16px;
+                font-size: 0.85em;
+            }
+
+            .modal-content {
+                padding: 25px;
+                width: 95%;
+            }
+
+            .modal-content h2 {
+                font-size: 1.3em;
+            }
+
+            .layer-panel {
+                padding: 12px;
+            }
+
+            .layer-item {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+
+            .recent-colors {
+                gap: 6px;
+            }
+
+            .recent-color {
+                width: 30px;
+                height: 30px;
+            }
+
+            input[type="range"] {
+                height: 6px;
+            }
+
+            input[type="range"]::-webkit-slider-thumb {
+                width: 16px;
+                height: 16px;
+            }
+
+            .slider-value {
+                font-size: 0.85em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.6em;
+            }
+
+            .subtitle {
+                font-size: 0.85em;
+                margin-bottom: 15px;
+            }
+
+            .feature-tags {
+                display: none;
+            }
+
+            .panel {
+                padding: 12px;
+            }
+
+            .canvas-wrapper {
+                padding: 10px;
+            }
+
+            .pixel {
+                width: 10px;
+                height: 10px;
+            }
+
+            .color-palette {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+
+            .color-option {
+                border-width: 2px;
+                border-radius: 8px;
+            }
+
+            button {
+                padding: 10px 14px;
+                font-size: 0.85em;
+                gap: 6px;
+            }
+
+            .tool-btn {
+                padding: 10px;
+                font-size: 0.85em;
+            }
+
+            .size-btn {
+                padding: 10px;
+                font-size: 0.85em;
+            }
+
+            .stats-panel {
+                padding: 12px;
+            }
+
+            .stats-grid {
+                gap: 8px;
+            }
+
+            .stat-value {
+                font-size: 1.3em;
+            }
+
+            .notification {
+                font-size: 0.8em;
+                padding: 10px 14px;
+            }
+
+            .zoom-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 0.85em;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .modal-actions button {
+                width: 100%;
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            /* Touch device specific styles */
+            .pixel:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            button:hover {
+                transform: none;
+            }
+
+            button:active {
+                transform: scale(0.95);
+            }
+
+            .color-option:hover {
+                transform: none;
+            }
+
+            .color-option:active {
+                transform: scale(0.9);
+            }
+
+            /* Larger touch targets */
+            button {
+                min-height: 44px;
+            }
+
+            .pixel {
+                cursor: pointer;
+            }
+        }
     </style>
 </head>
 <body>
@@ -643,9 +935,10 @@
                     </div>
 
                     <div class="button-grid" style="width: 100%; max-width: 500px;">
-                        <button class="btn-success" onclick="shareArt()">📤 Share URL</button>
+                        <button class="btn-success" onclick="copyURL()">📋 Copy URL</button>
+                        <button class="btn-success" onclick="shareArt()">📤 Share</button>
                         <button class="btn-warning" onclick="downloadArt()">💾 Download</button>
-                        <button class="btn-secondary" onclick="showExportModal()">🖼️ Export Options</button>
+                        <button class="btn-secondary" onclick="showExportModal()">🖼️ Export</button>
                         <button class="btn-danger" onclick="clearCanvas()">🗑️ Clear All</button>
                     </div>
                 </div>
@@ -1144,6 +1437,17 @@
             saveToURL();
             renderCanvas();
             showNotification('🔀 Colors inverted!');
+        }
+
+        function copyURL() {
+            // Force save to URL first
+            saveToURL();
+            
+            // Wait for hash to update
+            setTimeout(() => {
+                const url = window.location.href;
+                copyToClipboard(url);
+            }, 50);
         }
 
         function shareArt() {
