@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixelverse - URL Art Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+        }
+
+        h1 {
+            font-size: 3.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            font-weight: 800;
+            letter-spacing: -2px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .feature-tags {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: #a5b4fc;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .panel h2 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .canvas-wrapper {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(102, 126, 234, 0.2);
+            position: relative;
+        }
+
+        .canvas-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            border-radius: 20px;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .pixel-canvas {
+            display: grid;
+            gap: 1px;
+            background: #1e293b;
+            border: 2px solid #334155;
+            cursor: crosshair;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .pixel {
+            width: 18px;
+            height: 18px;
+            background: #1e293b;
+            transition: all 0.1s;
+            position: relative;
+        }
+
+        .pixel:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 10px currentColor;
+            z-index: 10;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.1;
+        }
+
+        .color-section {
+            margin-bottom: 25px;
+        }
+
+        .color-section h3 {
+            font-size: 0.95em;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .color-option {
+            aspect-ratio: 1;
+            border: 3px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .color-option.active {
+            border-color: #fff;
+            box-shadow: 0 0 20px currentColor;
+            transform: scale(1.05);
+        }
+
+        .color-option.active::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .custom-color-section {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .custom-color-section input[type="color"] {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: none;
+        }
+
+        .recent-colors {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .recent-color {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .recent-color:hover {
+            transform: scale(1.15);
+            border-color: white;
+        }
+
+        .tool-group {
+            margin-bottom: 20px;
+        }
+
+        .tool-group label {
+            display: block;
+            font-size: 0.9em;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #475569, #334155);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .tool-btn {
+            padding: 12px;
+            background: rgba(71, 85, 105, 0.4);
+            border: 2px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .tool-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: #667eea;
+        }
+
+        .size-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .size-btn {
+            padding: 12px;
+            background: rgba(71, 85, 105, 0.4);
+            border: 2px solid rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+            transition: all 0.2s;
+        }
+
+        .size-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: #667eea;
+            color: white;
+        }
+
+        .brush-size-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: rgba(71, 85, 105, 0.4);
+            border-radius: 10px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider-value {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quick-actions button {
+            width: 100%;
+        }
+
+        .stats-panel {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        .layer-panel {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .layer-item {
+            padding: 12px;
+            background: rgba(71, 85, 105, 0.3);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .layer-item:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .layer-item.active {
+            border: 2px solid #667eea;
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 18px 28px;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px) scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #e2e8f0;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pixel {
+                width: 15px;
+                height: 15px;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    
+    <div class="container">
+        <header>
+            <h1>✨ PIXELVERSE</h1>
+            <p class="subtitle">Professional Pixel Art Studio - Everything Lives in the URL</p>
+            <div class="feature-tags">
+                <span class="tag">🔗 URL-Powered</span>
+                <span class="tag">🎨 32 Colors</span>
+                <span class="tag">💾 Auto-Save</span>
+                <span class="tag">📤 Instant Share</span>
+                <span class="tag">🖼️ PNG Export</span>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left Panel - Tools -->
+            <div class="panel">
+                <h2>🛠️ Tools</h2>
+                
+                <div class="tool-group">
+                    <label>Drawing Mode</label>
+                    <div class="button-grid">
+                        <button class="tool-btn active" id="drawBtn" onclick="setTool('draw')">✏️ Draw</button>
+                        <button class="tool-btn" id="eraserBtn" onclick="setTool('eraser')">🧹 Eraser</button>
+                        <button class="tool-btn" id="fillBtn" onclick="setTool('fill')">🪣 Fill</button>
+                        <button class="tool-btn" id="pickerBtn" onclick="setTool('picker')">💉 Picker</button>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <label>Pen Shape</label>
+                    <div class="button-grid">
+                        <button class="tool-btn active" id="squareShape" onclick="setPenShape('square')">⬛ Square</button>
+                        <button class="tool-btn" id="circleShape" onclick="setPenShape('circle')">⬤ Circle</button>
+                        <button class="tool-btn" id="diamondShape" onclick="setPenShape('diamond')">◆ Diamond</button>
+                        <button class="tool-btn" id="crossShape" onclick="setPenShape('cross')">✚ Cross</button>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <label>Brush Size</label>
+                    <input type="range" id="brushSize" min="1" max="7" value="1" oninput="updateBrushSize()">
+                    <div class="slider-value" id="brushSizeValue">1px</div>
+                </div>
+
+                <div class="tool-group">
+                    <label>Canvas Size</label>
+                    <div class="size-options">
+                        <button class="size-btn" onclick="changeGridSize(16)">16×16</button>
+                        <button class="size-btn active" onclick="changeGridSize(24)">24×24</button>
+                        <button class="size-btn" onclick="changeGridSize(32)">32×32</button>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <label>Quick Actions</label>
+                    <div class="quick-actions">
+                        <button onclick="undo()">↶ Undo</button>
+                        <button onclick="redo()">↷ Redo</button>
+                        <button class="btn-secondary" onclick="flipHorizontal()">↔️ Flip H</button>
+                        <button class="btn-secondary" onclick="flipVertical()">↕️ Flip V</button>
+                        <button class="btn-secondary" onclick="rotate90()">🔄 Rotate</button>
+                        <button class="btn-secondary" onclick="invert()">🔀 Invert</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Canvas -->
+            <div class="panel">
+                <div class="canvas-container">
+                    <div class="canvas-wrapper">
+                        <div class="pixel-canvas" id="canvas"></div>
+                    </div>
+
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" onclick="zoomOut()">-</button>
+                        <button class="zoom-btn btn-secondary" onclick="resetZoom()">100%</button>
+                        <button class="zoom-btn" onclick="zoomIn()">+</button>
+                    </div>
+
+                    <div class="button-grid" style="width: 100%; max-width: 500px;">
+                        <button class="btn-success" onclick="shareArt()">📤 Share URL</button>
+                        <button class="btn-warning" onclick="downloadArt()">💾 Download</button>
+                        <button class="btn-secondary" onclick="showExportModal()">🖼️ Export Options</button>
+                        <button class="btn-danger" onclick="clearCanvas()">🗑️ Clear All</button>
+                    </div>
+                </div>
+
+                <div class="stats-panel">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="pixelsUsed">0</div>
+                            <div class="stat-label">Pixels Used</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="colorsUsed">0</div>
+                            <div class="stat-label">Colors Used</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="undoCount">0</div>
+                            <div class="stat-label">Undo Stack</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="canvasSize">24×24</div>
+                            <div class="stat-label">Canvas Size</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Colors -->
+            <div class="panel">
+                <h2>🎨 Color Palette</h2>
+                
+                <div class="color-section">
+                    <h3>Primary Colors</h3>
+                    <div class="color-palette" id="colorPalette"></div>
+                </div>
+
+                <div class="color-section">
+                    <h3>Custom Color</h3>
+                    <div class="custom-color-section">
+                        <input type="color" id="customColor" value="#667eea" onchange="selectCustomColor()">
+                        <div>
+                            <div style="color: #cbd5e1; font-size: 0.9em;">Pick Any Color</div>
+                            <div style="color: #64748b; font-size: 0.8em; margin-top: 4px;">Click to choose</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="color-section">
+                    <h3>Recent Colors</h3>
+                    <div class="recent-colors" id="recentColors"></div>
+                </div>
+
+                <div class="layer-panel">
+                    <h3 style="margin-bottom: 12px; font-size: 0.95em;">💾 Saved States</h3>
+                    <button onclick="saveState()" style="width: 100%; margin-bottom: 10px;">💾 Quick Save</button>
+                    <div id="savedStates"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <h2>🖼️ Export Options</h2>
+            <div class="tool-group">
+                <label>Export Scale</label>
+                <input type="range" id="exportScale" min="1" max="20" value="10" oninput="updateExportScale()">
+                <div class="slider-value" id="exportScaleValue">10x (Original size)</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-success" onclick="exportWithScale()">💾 Download PNG</button>
+                <button class="btn-secondary" onclick="closeExportModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const defaultColors = [
+            '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
+            '#FF8800', '#8800FF', '#00FF88', '#FF0088', '#88FF00', '#0088FF', '#FF8888', '#88FF88',
+            '#8888FF', '#FFFF88', '#FF88FF', '#88FFFF', '#667eea', '#764ba2', '#f093fb', '#4facfe',
+            '#fa709a', '#fee140', '#30cfd0', '#330867', '#a8edea', '#fed6e3', '#ff6e7f', '#bfe9ff'
+        ];
+
+        let gridSize = 24;
+        let currentColor = '#000000';
+        let currentTool = 'draw';
+        let penShape = 'square';
+        let brushSize = 1;
+        let pixels = [];
+        let isDrawing = false;
+        let recentColors = [];
+        let undoStack = [];
+        let redoStack = [];
+        let savedStates = [];
+        let zoom = 1;
+
+        function init() {
+            loadFromURL();
+            renderColorPalette();
+            renderCanvas();
+            updateActiveSize();
+            updateStats();
+            updateRecentColors();
+        }
+
+        function loadFromURL() {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                try {
+                    const decoded = decodeURIComponent(hash);
+                    const data = JSON.parse(atob(decoded));
+                    gridSize = data.size || 24;
+                    pixels = data.pixels || [];
+                    if (data.recent) recentColors = data.recent;
+                } catch (e) {
+                    console.error('Failed to parse URL data');
+                    initializePixels();
+                }
+            } else {
+                initializePixels();
+            }
+        }
+
+        function initializePixels() {
+            pixels = Array(gridSize * gridSize).fill('#1e293b');
+        }
+
+        function saveToURL() {
+            const data = {
+                size: gridSize,
+                pixels: pixels,
+                recent: recentColors.slice(0, 10)
+            };
+            const encoded = btoa(JSON.stringify(data));
+            window.location.hash = encodeURIComponent(encoded);
+        }
+
+        function addToHistory() {
+            undoStack.push(JSON.parse(JSON.stringify(pixels)));
+            if (undoStack.length > 50) undoStack.shift();
+            redoStack = [];
+            updateStats();
+        }
+
+        function undo() {
+            if (undoStack.length === 0) {
+                showNotification('Nothing to undo!', '#f59e0b');
+                return;
+            }
+            redoStack.push(JSON.parse(JSON.stringify(pixels)));
+            pixels = undoStack.pop();
+            saveToURL();
+            renderCanvas();
+            updateStats();
+            showNotification('⬅️ Undone!');
+        }
+
+        function redo() {
+            if (redoStack.length === 0) {
+                showNotification('Nothing to redo!', '#f59e0b');
+                return;
+            }
+            undoStack.push(JSON.parse(JSON.stringify(pixels)));
+            pixels = redoStack.pop();
+            saveToURL();
+            renderCanvas();
+            updateStats();
+            showNotification('➡️ Redone!');
+        }
+
+        function renderColorPalette() {
+            const palette = document.getElementById('colorPalette');
+            palette.innerHTML = defaultColors.map(color => `
+                <div class="color-option ${color === currentColor ? 'active' : ''}" 
+                     style="background: ${color}"
+                     onclick="selectColor('${color}')">
+                </div>
+            `).join('');
+        }
+
+        function selectColor(color) {
+            currentColor = color;
+            if (!recentColors.includes(color)) {
+                recentColors.unshift(color);
+                recentColors = recentColors.slice(0, 10);
+                updateRecentColors();
+            }
+            renderColorPalette();
+            setTool('draw');
+        }
+
+        function selectCustomColor() {
+            const color = document.getElementById('customColor').value;
+            selectColor(color);
+        }
+
+        function updateRecentColors() {
+            const container = document.getElementById('recentColors');
+            container.innerHTML = recentColors.map(color => `
+                <div class="recent-color" 
+                     style="background: ${color}"
+                     onclick="selectColor('${color}')">
+                </div>
+            `).join('');
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tool + 'Btn').classList.add('active');
+            
+            if (tool === 'fill') {
+                document.getElementById('canvas').style.cursor = 'pointer';
+            } else if (tool === 'picker') {
+                document.getElementById('canvas').style.cursor = 'copy';
+            } else {
+                document.getElementById('canvas').style.cursor = 'crosshair';
+            }
+        }
+
+        function setPenShape(shape) {
+            penShape = shape;
+            document.querySelectorAll('[id$="Shape"]').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(shape + 'Shape').classList.add('active');
+            showNotification(`Pen shape: ${shape}`);
+        }
+
+        function updateBrushSize() {
+            brushSize = parseInt(document.getElementById('brushSize').value);
+            document.getElementById('brushSizeValue').textContent = `${brushSize}px`;
+        }
+
+        function renderCanvas() {
+            const canvas = document.getElementById('canvas');
+            canvas.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            
+            canvas.innerHTML = pixels.map((color, index) => `
+                <div class="pixel" 
+                     style="background: ${color}"
+                     data-index="${index}"
+                     onmousedown="handlePixelClick(${index})"
+                     onmouseenter="handlePixelHover(${index})"
+                     onmouseup="stopDrawing()">
+                </div>
+            `).join('');
+        }
+
+        function handlePixelClick(index) {
+            isDrawing = true;
+            
+            if (currentTool === 'picker') {
+                selectColor(pixels[index]);
+                return;
+            }
+            
+            if (currentTool === 'fill') {
+                addToHistory();
+                floodFill(index, pixels[index], currentColor);
+                saveToURL();
+                renderCanvas();
+                updateStats();
+                return;
+            }
+            
+            addToHistory();
+            paintBrush(index);
+        }
+
+        function handlePixelHover(index) {
+            if (isDrawing && currentTool === 'draw') {
+                paintBrush(index);
+            } else if (isDrawing && currentTool === 'eraser') {
+                paintBrush(index);
+            }
+        }
+
+        function paintBrush(centerIndex) {
+            const centerX = centerIndex % gridSize;
+            const centerY = Math.floor(centerIndex / gridSize);
+            const color = currentTool === 'eraser' ? '#1e293b' : currentColor;
+            
+            const pixelsToPaint = getPixelsForShape(centerX, centerY, brushSize, penShape);
+            
+            pixelsToPaint.forEach(index => {
+                if (index >= 0 && index < pixels.length) {
+                    pixels[index] = color;
+                    const pixelElement = document.querySelector(`[data-index="${index}"]`);
+                    if (pixelElement) {
+                        pixelElement.style.background = color;
+                    }
+                }
+            });
+            
+            saveToURL();
+            updateStats();
+        }
+
+        function getPixelsForShape(centerX, centerY, size, shape) {
+            const pixelIndices = [];
+            const radius = Math.floor(size / 2);
+            
+            switch (shape) {
+                case 'square':
+                    // Square brush
+                    for (let dy = -radius; dy <= radius; dy++) {
+                        for (let dx = -radius; dx <= radius; dx++) {
+                            const x = centerX + dx;
+                            const y = centerY + dy;
+                            if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+                                pixelIndices.push(y * gridSize + x);
+                            }
+                        }
+                    }
+                    break;
+                    
+                case 'circle':
+                    // Circle brush
+                    for (let dy = -radius; dy <= radius; dy++) {
+                        for (let dx = -radius; dx <= radius; dx++) {
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            if (distance <= radius + 0.5) {
+                                const x = centerX + dx;
+                                const y = centerY + dy;
+                                if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+                                    pixelIndices.push(y * gridSize + x);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                    
+                case 'diamond':
+                    // Diamond brush
+                    for (let dy = -radius; dy <= radius; dy++) {
+                        for (let dx = -radius; dx <= radius; dx++) {
+                            const manhattanDist = Math.abs(dx) + Math.abs(dy);
+                            if (manhattanDist <= radius) {
+                                const x = centerX + dx;
+                                const y = centerY + dy;
+                                if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+                                    pixelIndices.push(y * gridSize + x);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                    
+                case 'cross':
+                    // Cross/Plus brush
+                    for (let i = -radius; i <= radius; i++) {
+                        // Horizontal line
+                        const xH = centerX + i;
+                        if (xH >= 0 && xH < gridSize) {
+                            pixelIndices.push(centerY * gridSize + xH);
+                        }
+                        // Vertical line
+                        const yV = centerY + i;
+                        if (yV >= 0 && yV < gridSize) {
+                            pixelIndices.push(yV * gridSize + centerX);
+                        }
+                    }
+                    break;
+            }
+            
+            return pixelIndices;
+        }
+
+        function floodFill(startIndex, targetColor, replacementColor) {
+            if (targetColor === replacementColor) return;
+            
+            const stack = [startIndex];
+            const visited = new Set();
+            
+            while (stack.length > 0) {
+                const index = stack.pop();
+                
+                if (visited.has(index)) continue;
+                if (pixels[index] !== targetColor) continue;
+                
+                visited.add(index);
+                pixels[index] = replacementColor;
+                
+                const x = index % gridSize;
+                const y = Math.floor(index / gridSize);
+                
+                // Add neighbors
+                if (x > 0) stack.push(index - 1);
+                if (x < gridSize - 1) stack.push(index + 1);
+                if (y > 0) stack.push(index - gridSize);
+                if (y < gridSize - 1) stack.push(index + gridSize);
+            }
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function changeGridSize(newSize) {
+            if (pixels.some(p => p !== '#1e293b')) {
+                if (!confirm('Changing canvas size will clear your artwork. Continue?')) {
+                    return;
+                }
+            }
+            
+            addToHistory();
+            gridSize = newSize;
+            initializePixels();
+            saveToURL();
+            renderCanvas();
+            updateActiveSize();
+            updateStats();
+            showNotification(`Canvas resized to ${newSize}×${newSize}!`);
+        }
+
+        function updateActiveSize() {
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                if (btn.textContent === `${gridSize}×${gridSize}`) {
+                    btn.classList.add('active');
+                }
+            });
+            document.getElementById('canvasSize').textContent = `${gridSize}×${gridSize}`;
+        }
+
+        function clearCanvas() {
+            if (!confirm('Are you sure you want to clear the canvas?')) {
+                return;
+            }
+            
+            addToHistory();
+            initializePixels();
+            saveToURL();
+            renderCanvas();
+            updateStats();
+            showNotification('Canvas cleared!', '#ef4444');
+        }
+
+        function flipHorizontal() {
+            addToHistory();
+            const newPixels = [];
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const oldIndex = y * gridSize + x;
+                    const newIndex = y * gridSize + (gridSize - 1 - x);
+                    newPixels[newIndex] = pixels[oldIndex];
+                }
+            }
+            pixels = newPixels;
+            saveToURL();
+            renderCanvas();
+            showNotification('↔️ Flipped horizontally!');
+        }
+
+        function flipVertical() {
+            addToHistory();
+            const newPixels = [];
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const oldIndex = y * gridSize + x;
+                    const newIndex = (gridSize - 1 - y) * gridSize + x;
+                    newPixels[newIndex] = pixels[oldIndex];
+                }
+            }
+            pixels = newPixels;
+            saveToURL();
+            renderCanvas();
+            showNotification('↕️ Flipped vertically!');
+        }
+
+        function rotate90() {
+            addToHistory();
+            const newPixels = [];
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const oldIndex = y * gridSize + x;
+                    const newIndex = x * gridSize + (gridSize - 1 - y);
+                    newPixels[newIndex] = pixels[oldIndex];
+                }
+            }
+            pixels = newPixels;
+            saveToURL();
+            renderCanvas();
+            showNotification('🔄 Rotated 90°!');
+        }
+
+        function invert() {
+            addToHistory();
+            pixels = pixels.map(color => {
+                if (color === '#1e293b') return currentColor;
+                if (color === currentColor) return '#1e293b';
+                return color;
+            });
+            saveToURL();
+            renderCanvas();
+            showNotification('🔀 Colors inverted!');
+        }
+
+        function shareArt() {
+            // Force save to URL first to ensure hash is updated
+            saveToURL();
+            
+            // Wait a tick for hash to update
+            setTimeout(() => {
+                const url = window.location.href;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'My Pixel Art',
+                        text: 'Check out my pixel art created in Pixelverse!',
+                        url: url
+                    }).catch(() => copyToClipboard(url));
+                } else {
+                    copyToClipboard(url);
+                }
+            }, 50);
+        }
+
+        function copyToClipboard(text) {
+            // Try multiple methods to ensure copying works
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showNotification('🔗 Link copied! Share your masterpiece!');
+                }).catch(() => {
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            // Fallback method for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showNotification('🔗 Link copied! Share your masterpiece!');
+            } catch (err) {
+                showNotification('Failed to copy link. Please copy from address bar.', '#ef4444');
+            }
+            
+            document.body.removeChild(textarea);
+        }
+
+        function downloadArt() {
+            exportWithScale(10);
+        }
+
+        function showExportModal() {
+            document.getElementById('exportModal').classList.add('active');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        function updateExportScale() {
+            const scale = document.getElementById('exportScale').value;
+            const size = gridSize * scale;
+            document.getElementById('exportScaleValue').textContent = `${scale}x (${size}×${size}px)`;
+        }
+
+        function exportWithScale(customScale) {
+            const scale = customScale || parseInt(document.getElementById('exportScale').value);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const pixelSize = scale;
+            
+            canvas.width = gridSize * pixelSize;
+            canvas.height = gridSize * pixelSize;
+            
+            pixels.forEach((color, index) => {
+                const x = (index % gridSize) * pixelSize;
+                const y = Math.floor(index / gridSize) * pixelSize;
+                
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, pixelSize, pixelSize);
+            });
+            
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `pixelart-${gridSize}x${gridSize}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showNotification('💾 Downloaded as PNG!');
+                closeExportModal();
+            });
+        }
+
+        function zoomIn() {
+            zoom = Math.min(zoom + 0.2, 3);
+            applyZoom();
+        }
+
+        function zoomOut() {
+            zoom = Math.max(zoom - 0.2, 0.5);
+            applyZoom();
+        }
+
+        function resetZoom() {
+            zoom = 1;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            const canvas = document.getElementById('canvas');
+            canvas.style.transform = `scale(${zoom})`;
+            showNotification(`🔍 Zoom: ${Math.round(zoom * 100)}%`);
+        }
+
+        function updateStats() {
+            const usedPixels = pixels.filter(p => p !== '#1e293b').length;
+            const uniqueColors = new Set(pixels.filter(p => p !== '#1e293b')).size;
+            
+            document.getElementById('pixelsUsed').textContent = usedPixels;
+            document.getElementById('colorsUsed').textContent = uniqueColors;
+            document.getElementById('undoCount').textContent = undoStack.length;
+        }
+
+        function saveState() {
+            const state = {
+                pixels: JSON.parse(JSON.stringify(pixels)),
+                size: gridSize,
+                timestamp: Date.now()
+            };
+            savedStates.unshift(state);
+            savedStates = savedStates.slice(0, 5);
+            updateSavedStates();
+            showNotification('💾 State saved!');
+        }
+
+        function updateSavedStates() {
+            const container = document.getElementById('savedStates');
+            container.innerHTML = savedStates.map((state, index) => {
+                const date = new Date(state.timestamp);
+                const timeStr = date.toLocaleTimeString();
+                return `
+                    <div class="layer-item" onclick="loadState(${index})">
+                        <div>
+                            <div style="font-size: 0.9em;">Save ${index + 1}</div>
+                            <div style="font-size: 0.75em; color: #64748b;">${timeStr}</div>
+                        </div>
+                        <button onclick="event.stopPropagation(); deleteState(${index})" 
+                                style="padding: 6px 12px; font-size: 0.8em;">✕</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadState(index) {
+            const state = savedStates[index];
+            addToHistory();
+            pixels = JSON.parse(JSON.stringify(state.pixels));
+            gridSize = state.size;
+            saveToURL();
+            renderCanvas();
+            updateActiveSize();
+            updateStats();
+            showNotification('📂 State loaded!');
+        }
+
+        function deleteState(index) {
+            savedStates.splice(index, 1);
+            updateSavedStates();
+            showNotification('🗑️ State deleted!', '#ef4444');
+        }
+
+        function showNotification(message, color = '#10b981') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            notification.style.background = color;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        document.addEventListener('mouseup', stopDrawing);
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z' && !e.shiftKey) {
+                    e.preventDefault();
+                    undo();
+                } else if (e.key === 'z' && e.shiftKey || e.key === 'y') {
+                    e.preventDefault();
+                    redo();
+                }
+            }
+        });
+
+        window.addEventListener('hashchange', () => {
+            loadFromURL();
+            renderCanvas();
+            updateStats();
+        });
+
+        init();
+    </script>
+</body>
+</html>
